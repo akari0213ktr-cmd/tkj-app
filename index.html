@@ -105,6 +105,12 @@
         }
         .lyric-quiz-line { font-size: 1.35rem; line-height: 1.8; color: #ffffff; font-weight: bold; white-space: pre-wrap; word-break: normal; overflow-wrap: break-word; line-break: strict; }
         .mode-note { font-size: 0.9rem; color: #eeeeee; margin-top: -10px; margin-bottom: 20px; }
+
+        .slider-box { background-color: #61676a; border-radius: 12px; padding: 18px 15px; margin-bottom: 20px; border: 2px solid #444b55; }
+        .slider-label { font-size: 1.1rem; font-weight: bold; color: #ffffff; margin-bottom: 12px; }
+        .outro-seconds-display { color: #ffd700; font-size: 1.45rem; }
+        .outro-slider { width: 100%; accent-color: #ffd700; }
+        .slider-minmax { display: flex; justify-content: space-between; color: #eeeeee; font-size: 0.85rem; margin-top: 6px; }
         .loading { text-align: center; color: #ffffff; padding: 40px 0; }
     </style>
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -140,6 +146,9 @@
         var APP_SETTINGS = {
             introTimes: [3, 5, 10],
             outroTimes: [3, 4, 5, 6, 7, 8, 9, 10],
+            outroMin: 3,
+            outroMax: 10,
+            outroDefault: 5,
             lyricTargetLength: 10,
             lyricMinLength: 8,
             lyricMaxLength: 12
@@ -551,7 +560,7 @@ function renderScreen() {
                 box.innerHTML = html;
 
             } else if (currentMode === 'outro') {
-                var html = '<div class="intro-screen"><h2 class="intro-title">🎶 ランダム アウトロドン！</h2><div class="mode-note">曲の最後から再生します</div><div id="statusArea" class="status-text">準備中...</div>';
+                var html = '<div class="intro-screen"><h2 class="intro-title">🎶 ランダム アウトロドン！</h2><div class="mode-note">バーで秒数を選んで曲の最後から再生します</div><div id="statusArea" class="status-text">準備中...</div>';
                 html += createOutroButtons();
                 html += '<div class="answer-box" id="answerBox"><div class="secret-text">？ ？ ？</div></div>';
                 html += '<button class="action-btn btn-answer" id="ansBtn" onclick="showAnswer()" disabled>正解発表 どん！</button>';
@@ -646,6 +655,26 @@ function renderScreen() {
             } else {
                 setTimeout(function() { nextQuestion(false); }, 1000);
             }
+        }
+
+        function updateOutroSecondsDisplay() {
+            var slider = document.getElementById('outroSecondsSlider');
+            var display = document.getElementById('outroSecondsDisplay');
+
+            if (slider && display) {
+                display.textContent = slider.value;
+            }
+        }
+
+        function playOutroFromSlider() {
+            var slider = document.getElementById('outroSecondsSlider');
+            var seconds = APP_SETTINGS.outroDefault || 5;
+
+            if (slider) {
+                seconds = parseInt(slider.value, 10);
+            }
+
+            playOutro(seconds);
         }
 
         function playOutro(seconds) {
@@ -776,17 +805,14 @@ function renderScreen() {
 
         function setIntroButtons(enabled) {
             var introTimes = APP_SETTINGS.introTimes || [];
-            var outroTimes = APP_SETTINGS.outroTimes || [];
 
             introTimes.forEach(function(seconds) {
                 var btn = document.getElementById('introBtn' + seconds + 's');
                 if (btn) btn.disabled = !enabled;
             });
 
-            outroTimes.forEach(function(seconds) {
-                var btn = document.getElementById('outroBtn' + seconds + 's');
-                if (btn) btn.disabled = !enabled;
-            });
+            var outroPlayBtn = document.getElementById('outroPlayBtn');
+            if (outroPlayBtn) outroPlayBtn.disabled = !enabled;
 
             if(document.getElementById('ansBtn')) document.getElementById('ansBtn').disabled = !enabled;
         }
