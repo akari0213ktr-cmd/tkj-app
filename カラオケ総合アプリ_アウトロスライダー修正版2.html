@@ -111,6 +111,13 @@
         .outro-seconds-display { color: #ffd700; font-size: 1.45rem; }
         .outro-slider { width: 100%; accent-color: #ffd700; }
         .slider-minmax { display: flex; justify-content: space-between; color: #eeeeee; font-size: 0.85rem; margin-top: 6px; }
+
+        .slider-box { background-color: #61676a; border-radius: 12px; padding: 18px 15px; margin-bottom: 20px; border: 2px solid #444b55; }
+        .slider-label { font-size: 1.1rem; font-weight: bold; color: #ffffff; margin-bottom: 12px; }
+        .intro-seconds-display, .outro-seconds-display { color: #ffd700; font-size: 1.45rem; }
+        .intro-slider, .outro-slider { width: 100%; accent-color: #ffd700; }
+        .slider-minmax { display: flex; justify-content: space-between; color: #eeeeee; font-size: 0.85rem; margin-top: 6px; }
+        .intro-play-btn, .outro-play-btn { margin-bottom: 25px; }
         .loading { text-align: center; color: #ffffff; padding: 40px 0; }
     </style>
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -140,12 +147,16 @@
 
         // ====================
         // アプリ設定
-        // 秒数を変えたい場合はここだけ変更してください
-        // 例：introTimes: [2, 4, 8]
+        // 秒数や歌詞ドンの文字数を変えたい場合はここだけ変更してください
+        // ====================
+        // ====================
+        // アプリ設定
+        // 秒数や歌詞ドンの文字数を変えたい場合はここだけ変更してください
         // ====================
         var APP_SETTINGS = {
-            introTimes: [3, 5, 10],
-            outroTimes: [3, 4, 5, 6, 7, 8, 9, 10],
+            introMin: 3,
+            introMax: 10,
+            introDefault: 3,
             outroMin: 3,
             outroMax: 10,
             outroDefault: 5,
@@ -556,16 +567,34 @@ function onPlayerStateChange(event) {
                 box.innerHTML = html;
 
             } else if (currentMode === 'intro') {
-                var html = '<div class="intro-screen"><h2 class="intro-title">🎵 ランダム イントロドン！</h2><div class="mode-note">一巡するまで同じ曲は出ません</div><div id="statusArea" class="status-text">準備中...</div>';
-                html += createIntroButtons();
+                var min = APP_SETTINGS.introMin || 3;
+                var max = APP_SETTINGS.introMax || 10;
+                var def = APP_SETTINGS.introDefault || min;
+
+                var html = '<div class="intro-screen"><h2 class="intro-title">🎵 ランダム イントロドン！</h2><div class="mode-note">バーで秒数を選んで曲の最初から再生します</div><div id="statusArea" class="status-text">準備中...</div>';
+                html += '<div class="slider-box">';
+                html += '<div class="slider-label">最初の <span id="introSecondsDisplay" class="intro-seconds-display">' + def + '</span> 秒</div>';
+                html += '<input class="intro-slider" id="introSecondsSlider" type="range" min="' + min + '" max="' + max + '" step="1" value="' + def + '" oninput="updateIntroSecondsDisplay()">';
+                html += '<div class="slider-minmax"><span>' + min + '秒</span><span>' + max + '秒</span></div>';
+                html += '</div>';
+                html += '<button class="action-btn btn-answer intro-play-btn" id="introPlayBtn" onclick="playIntroFromSlider()" disabled>選んだ秒数で聴く</button>';
                 html += '<div class="answer-box" id="answerBox"><div class="secret-text">？ ？ ？</div></div>';
                 html += '<button class="action-btn btn-answer" id="ansBtn" onclick="showAnswer()" disabled>正解発表 どん！</button>';
                 html += '<button class="action-btn btn-next" id="nextBtn" onclick="nextQuestion(false)" style="display:none;">次の問題へ ➔</button></div>';
                 box.innerHTML = html;
 
             } else if (currentMode === 'outro') {
-                var html = '<div class="intro-screen"><h2 class="intro-title">🎶 ランダム アウトロドン！</h2><div class="mode-note">バーで秒数を選んでバーで秒数を選んで曲の最後から再生します</div><div id="statusArea" class="status-text">準備中...</div>';
-                html += createOutroButtons();
+                var min = APP_SETTINGS.outroMin || 3;
+                var max = APP_SETTINGS.outroMax || 10;
+                var def = APP_SETTINGS.outroDefault || min;
+
+                var html = '<div class="intro-screen"><h2 class="intro-title">🎶 ランダム アウトロドン！</h2><div class="mode-note">バーで秒数を選んで曲の最後から再生します</div><div id="statusArea" class="status-text">準備中...</div>';
+                html += '<div class="slider-box">';
+                html += '<div class="slider-label">ラスト <span id="outroSecondsDisplay" class="outro-seconds-display">' + def + '</span> 秒</div>';
+                html += '<input class="outro-slider" id="outroSecondsSlider" type="range" min="' + min + '" max="' + max + '" step="1" value="' + def + '" oninput="updateOutroSecondsDisplay()">';
+                html += '<div class="slider-minmax"><span>' + min + '秒</span><span>' + max + '秒</span></div>';
+                html += '</div>';
+                html += '<button class="action-btn btn-answer outro-play-btn" id="outroPlayBtn" onclick="playOutroFromSlider()" disabled>選んだ秒数で聴く</button>';
                 html += '<div class="answer-box" id="answerBox"><div class="secret-text">？ ？ ？</div></div>';
                 html += '<button class="action-btn btn-answer" id="ansBtn" onclick="showAnswer()" disabled>正解発表 どん！</button>';
                 html += '<button class="action-btn btn-next" id="nextBtn" onclick="nextQuestion(false)" style="display:none;">次の問題へ ➔</button></div>';
@@ -659,6 +688,26 @@ function onPlayerStateChange(event) {
             } else {
                 setTimeout(function() { nextQuestion(false); }, 1000);
             }
+        }
+
+        function updateIntroSecondsDisplay() {
+            var slider = document.getElementById('introSecondsSlider');
+            var display = document.getElementById('introSecondsDisplay');
+
+            if (slider && display) {
+                display.textContent = slider.value;
+            }
+        }
+
+        function playIntroFromSlider() {
+            var slider = document.getElementById('introSecondsSlider');
+            var seconds = APP_SETTINGS.introDefault || 3;
+
+            if (slider) {
+                seconds = parseInt(slider.value, 10);
+            }
+
+            playIntro(seconds);
         }
 
         function updateOutroSecondsDisplay() {
@@ -808,12 +857,8 @@ function onPlayerStateChange(event) {
         }
 
         function setIntroButtons(enabled) {
-            var introTimes = APP_SETTINGS.introTimes || [];
-
-            introTimes.forEach(function(seconds) {
-                var btn = document.getElementById('introBtn' + seconds + 's');
-                if (btn) btn.disabled = !enabled;
-            });
+            var introPlayBtn = document.getElementById('introPlayBtn');
+            if (introPlayBtn) introPlayBtn.disabled = !enabled;
 
             var outroPlayBtn = document.getElementById('outroPlayBtn');
             if (outroPlayBtn) outroPlayBtn.disabled = !enabled;
