@@ -66,7 +66,7 @@
         .intro-screen { text-align: center; display: flex; flex-direction: column; height: 100%; justify-content: center; }
         .intro-title { font-size: 1.5rem; color: #ffd700; margin-top: 0; margin-bottom: 25px; }
         .status-text { font-size: 1rem; color: #eeeeee; margin-bottom: 25px; }
-        .audio-buttons { display: grid; grid-template-columns: repeat(var(--btn-count, 3), 1fr); gap: 10px; margin-bottom: 25px; }
+        .audio-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin-bottom: 25px; }
         .play-btn { padding: 14px 5px; font-size: 1rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: white; }
         .btn-1s { background-color: #e05656; }
         .btn-3s { background-color: #e67e22; }
@@ -138,8 +138,8 @@
         // 例：introTimes: [2, 4, 8]
         // ====================
         var APP_SETTINGS = {
-            introTimes: [2, 5, 10],
-            outroTimes: [3, 5, 7, 10],
+            introTimes: [3, 5, 10],
+            outroTimes: [3, 4, 5, 6, 7, 8, 9, 10],
             lyricTargetLength: 10,
             lyricMinLength: 8,
             lyricMaxLength: 12
@@ -511,7 +511,7 @@ function onPlayerStateChange(event) {
 
         function createIntroButtons() {
             var times = APP_SETTINGS.introTimes || [];
-            var html = '<div class="audio-buttons" style="--btn-count:' + times.length + ';">';
+            var html = '<div class="audio-buttons">';
 
             times.forEach(function(seconds) {
                 html += '<button class="play-btn ' + getButtonClass(seconds) + '" id="introBtn' + seconds + 's" onclick="playIntro(' + seconds + ')" disabled>' + seconds + '秒聴く</button>';
@@ -523,7 +523,7 @@ function onPlayerStateChange(event) {
 
         function createOutroButtons() {
             var times = APP_SETTINGS.outroTimes || [];
-            var html = '<div class="audio-buttons" style="--btn-count:' + times.length + ';">';
+            var html = '<div class="audio-buttons">';
 
             times.forEach(function(seconds) {
                 html += '<button class="play-btn ' + getButtonClass(seconds) + '" id="outroBtn' + seconds + 's" onclick="playOutro(' + seconds + ')" disabled>ラスト' + seconds + '秒</button>';
