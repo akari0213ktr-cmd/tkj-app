@@ -157,12 +157,14 @@
             introMin: 1,
             introMax: 10,
             introDefault: 1,
+            introStep: 0.5,
             outroMin: 3,
             outroMax: 10,
             outroDefault: 5,
+            outroStep: 0.5,
             lyricTargetLength: 10,
             lyricMinLength: 8,
-            lyricMaxLength: 15
+            lyricMaxLength: 12
         };
 
         var currentMode = 'utari';
@@ -557,6 +559,13 @@ function onPlayerStateChange(event) {
             return html;
         }
 
+        function formatSeconds(value) {
+            var num = parseFloat(value);
+            if (isNaN(num)) return value;
+            if (Math.abs(num - Math.round(num)) < 0.001) return String(Math.round(num));
+            return String(num);
+        }
+
         function renderScreen() {
             var box = document.getElementById('mainAppBox');
 
@@ -567,15 +576,16 @@ function onPlayerStateChange(event) {
                 box.innerHTML = html;
 
             } else if (currentMode === 'intro') {
-                var min = APP_SETTINGS.introMin || 3;
+                var min = APP_SETTINGS.introMin || 1;
                 var max = APP_SETTINGS.introMax || 10;
                 var def = APP_SETTINGS.introDefault || min;
+                var step = APP_SETTINGS.introStep || 0.5;
 
                 var html = '<div class="intro-screen"><h2 class="intro-title">🎵 ランダム イントロドン！</h2><div class="mode-note">バーで秒数を選んで曲の最初から再生します</div><div id="statusArea" class="status-text">準備中...</div>';
                 html += '<div class="slider-box">';
-                html += '<div class="slider-label">最初の <span id="introSecondsDisplay" class="intro-seconds-display">' + def + '</span> 秒</div>';
-                html += '<input class="intro-slider" id="introSecondsSlider" type="range" min="' + min + '" max="' + max + '" step="1" value="' + def + '" oninput="updateIntroSecondsDisplay()">';
-                html += '<div class="slider-minmax"><span>' + min + '秒</span><span>' + max + '秒</span></div>';
+                html += '<div class="slider-label">最初の <span id="introSecondsDisplay" class="intro-seconds-display">' + formatSeconds(def) + '</span> 秒</div>';
+                html += '<input class="intro-slider" id="introSecondsSlider" type="range" min="' + min + '" max="' + max + '" step="' + step + '" value="' + def + '" oninput="updateIntroSecondsDisplay()">';
+                html += '<div class="slider-minmax"><span>' + formatSeconds(min) + '秒</span><span>' + formatSeconds(max) + '秒</span></div>';
                 html += '</div>';
                 html += '<button class="action-btn btn-answer intro-play-btn" id="introPlayBtn" onclick="playIntroFromSlider()" disabled>選んだ秒数で聴く</button>';
                 html += '<div class="answer-box" id="answerBox"><div class="secret-text">？ ？ ？</div></div>';
@@ -587,12 +597,13 @@ function onPlayerStateChange(event) {
                 var min = APP_SETTINGS.outroMin || 3;
                 var max = APP_SETTINGS.outroMax || 10;
                 var def = APP_SETTINGS.outroDefault || min;
+                var step = APP_SETTINGS.outroStep || 0.5;
 
                 var html = '<div class="intro-screen"><h2 class="intro-title">🎶 ランダム アウトロドン！</h2><div class="mode-note">バーで秒数を選んで曲の最後から再生します</div><div id="statusArea" class="status-text">準備中...</div>';
                 html += '<div class="slider-box">';
-                html += '<div class="slider-label">ラスト <span id="outroSecondsDisplay" class="outro-seconds-display">' + def + '</span> 秒</div>';
-                html += '<input class="outro-slider" id="outroSecondsSlider" type="range" min="' + min + '" max="' + max + '" step="1" value="' + def + '" oninput="updateOutroSecondsDisplay()">';
-                html += '<div class="slider-minmax"><span>' + min + '秒</span><span>' + max + '秒</span></div>';
+                html += '<div class="slider-label">ラスト <span id="outroSecondsDisplay" class="outro-seconds-display">' + formatSeconds(def) + '</span> 秒</div>';
+                html += '<input class="outro-slider" id="outroSecondsSlider" type="range" min="' + min + '" max="' + max + '" step="' + step + '" value="' + def + '" oninput="updateOutroSecondsDisplay()">';
+                html += '<div class="slider-minmax"><span>' + formatSeconds(min) + '秒</span><span>' + formatSeconds(max) + '秒</span></div>';
                 html += '</div>';
                 html += '<button class="action-btn btn-answer outro-play-btn" id="outroPlayBtn" onclick="playOutroFromSlider()" disabled>選んだ秒数で聴く</button>';
                 html += '<div class="answer-box" id="answerBox"><div class="secret-text">？ ？ ？</div></div>';
@@ -693,40 +704,26 @@ function onPlayerStateChange(event) {
         function updateIntroSecondsDisplay() {
             var slider = document.getElementById('introSecondsSlider');
             var display = document.getElementById('introSecondsDisplay');
-
-            if (slider && display) {
-                display.textContent = slider.value;
-            }
+            if (slider && display) display.textContent = formatSeconds(slider.value);
         }
 
         function playIntroFromSlider() {
             var slider = document.getElementById('introSecondsSlider');
-            var seconds = APP_SETTINGS.introDefault || 3;
-
-            if (slider) {
-                seconds = parseInt(slider.value, 10);
-            }
-
+            var seconds = APP_SETTINGS.introDefault || 1;
+            if (slider) seconds = parseFloat(slider.value);
             playIntro(seconds);
         }
 
         function updateOutroSecondsDisplay() {
             var slider = document.getElementById('outroSecondsSlider');
             var display = document.getElementById('outroSecondsDisplay');
-
-            if (slider && display) {
-                display.textContent = slider.value;
-            }
+            if (slider && display) display.textContent = formatSeconds(slider.value);
         }
 
         function playOutroFromSlider() {
             var slider = document.getElementById('outroSecondsSlider');
             var seconds = APP_SETTINGS.outroDefault || 5;
-
-            if (slider) {
-                seconds = parseInt(slider.value, 10);
-            }
-
+            if (slider) seconds = parseFloat(slider.value);
             playOutro(seconds);
         }
 
@@ -766,7 +763,7 @@ function onPlayerStateChange(event) {
                         ytPlayer.setVolume(100);
                         ytPlayer.playVideo();
 
-                        document.getElementById('statusArea').textContent = 'ラスト' + seconds + '秒間 再生中... 🎵';
+                        document.getElementById('statusArea').textContent = 'ラスト' + formatSeconds(seconds) + '秒間 再生中... 🎵';
                         startStopTimer(seconds);
                     }
 
@@ -816,7 +813,7 @@ function onPlayerStateChange(event) {
             clearTimeout(stopTimer);
             lastPlayerError = null;
 
-            document.getElementById('statusArea').textContent = seconds + '秒間 再生中... 🎵';
+            document.getElementById('statusArea').textContent = formatSeconds(seconds) + '秒間 再生中... 🎵';
 
             try {
                 ytPlayer.unMute();
