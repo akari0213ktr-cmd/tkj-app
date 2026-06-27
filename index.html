@@ -118,6 +118,9 @@
         .intro-slider, .outro-slider { width: 100%; accent-color: #ffd700; }
         .slider-minmax { display: flex; justify-content: space-between; color: #eeeeee; font-size: 0.85rem; margin-top: 6px; }
         .intro-play-btn, .outro-play-btn { margin-bottom: 25px; }
+        .mix-answer-list { width: 100%; text-align: left; }
+        .mix-answer-item { background: #555c60; border-radius: 10px; padding: 10px; margin: 8px 0; color: #ffffff; }
+        .mix-title { color: #ffd700; font-weight: bold; }
         .loading { text-align: center; color: #ffffff; padding: 40px 0; }
     </style>
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -129,6 +132,7 @@
         <button id="menuIntro" class="menu-btn" onclick="switchMode('intro')">🎵 イントロドン</button>
         <button id="menuOutro" class="menu-btn" onclick="switchMode('outro')">🎶 アウトロドン</button>
         <button id="menuLyric" class="menu-btn" onclick="switchMode('lyric')">📝 歌詞ドン</button>
+        <button id="menuMix" class="menu-btn" onclick="switchMode('mix')">🎧 3曲MIXドン</button>
     </div>
 
     <div id="mainAppBox" class="app-container">
@@ -137,6 +141,9 @@
 
     <div id="youtube-hidden-container">
         <div id="yt-player"></div>
+        <div id="yt-mix-player-1"></div>
+        <div id="yt-mix-player-2"></div>
+        <div id="yt-mix-player-3"></div>
     </div>
 
     <script>
@@ -163,8 +170,8 @@
             outroDefault: 5,
             outroStep: 0.5,
             lyricTargetLength: 10,
-            lyricMinLength: 7,
-            lyricMaxLength: 20
+            lyricMinLength: 8,
+            lyricMaxLength: 12
         };
 
         var currentMode = 'utari';
@@ -177,6 +184,8 @@
         var remainingLyricQuizList = [];
        
         var ytPlayer = null; // YouTubeプレイヤー
+        var mixPlayers = [];
+        var currentMixQuiz = [];
         var stopTimer = null;
         var isPlayerReady = false;
         var lastPlayerError = null;
@@ -193,7 +202,7 @@
             ytPlayer = new YT.Player('yt-player', {
                 height: '135',
                 width: '240',
-                videoId: 'dQw4w9WgXcQ', // 初期ダミー動画
+                videoId: 'dQw4w9WgXcQ',
                 playerVars: {
                     'playsinline': 1,
                     'controls': 0,
@@ -202,7 +211,7 @@
                 events: {
                     'onReady': function() {
                         isPlayerReady = true;
-                        if (currentMode === 'intro' && currentQuiz) {
+                        if ((currentMode === 'intro' || currentMode === 'outro' || currentMode === 'mix') && currentQuiz) {
                             setIntroButtons(true);
                         }
                     },
@@ -210,6 +219,30 @@
                     'onError': onPlayerError
                 }
             });
+
+            mixPlayers = [
+                new YT.Player('yt-mix-player-1', {
+                    height: '135',
+                    width: '240',
+                    videoId: 'dQw4w9WgXcQ',
+                    playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
+                    events: { 'onStateChange': onPlayerStateChange, 'onError': onPlayerError }
+                }),
+                new YT.Player('yt-mix-player-2', {
+                    height: '135',
+                    width: '240',
+                    videoId: 'dQw4w9WgXcQ',
+                    playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
+                    events: { 'onStateChange': onPlayerStateChange, 'onError': onPlayerError }
+                }),
+                new YT.Player('yt-mix-player-3', {
+                    height: '135',
+                    width: '240',
+                    videoId: 'dQw4w9WgXcQ',
+                    playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
+                    events: { 'onStateChange': onPlayerStateChange, 'onError': onPlayerError }
+                })
+            ];
         };
 
         
@@ -266,14 +299,17 @@ function onPlayerStateChange(event) {
             if (currentMode === mode) return;
             currentMode = mode;
             if (ytPlayer && isPlayerReady) ytPlayer.pauseVideo();
+            pauseMixPlayers();
             clearTimeout(stopTimer);
 
             document.getElementById('menuUtari').className = 'menu-btn' + (mode === 'utari' ? ' active' : '');
             document.getElementById('menuIntro').className = 'menu-btn' + (mode === 'intro' ? ' active' : '');
             document.getElementById('menuOutro').className = 'menu-btn' + (mode === 'outro' ? ' active' : '');
             document.getElementById('menuLyric').className = 'menu-btn' + (mode === 'lyric' ? ' active' : '');
+            document.getElementById('menuMix').className = 'menu-btn' + (mode === 'mix' ? ' active' : '');
 
             if (mode === 'intro' || mode === 'outro') nextQuestion(true);
+            else if (mode === 'mix') nextMixQuestion(true);
             else if (mode === 'lyric') nextLyricQuestion(true);
             else renderScreen();
         }
@@ -611,6 +647,14 @@ function onPlayerStateChange(event) {
                 html += '<button class="action-btn btn-next" id="nextBtn" onclick="nextQuestion(false)" style="display:none;">次の問題へ ➔</button></div>';
                 box.innerHTML = html;
 
+            } else if (currentMode === 'mix') {
+                var html = '<div class="intro-screen"><h2 class="intro-title">🎧 ランダム 3曲MIXドン！</h2><div class="mode-note">シート2からランダムで3曲を同時再生します</div><div id="statusArea" class="status-text">準備中...</div>';
+                html += '<button class="action-btn btn-answer intro-play-btn" id="mixPlayBtn" onclick="playMixQuiz()" disabled>3曲を同時に聴く</button>';
+                html += '<div class="answer-box" id="answerBox"><div class="secret-text">？ ？ ？</div></div>';
+                html += '<button class="action-btn btn-answer" id="ansBtn" onclick="showMixAnswer()" disabled>正解発表 どん！</button>';
+                html += '<button class="action-btn btn-next" id="nextBtn" onclick="nextMixQuestion(false)" style="display:none;">次の問題へ ➔</button></div>';
+                box.innerHTML = html;
+
             } else if (currentMode === 'lyric') {
                 var html = '<div class="intro-screen"><h2 class="intro-title">📝 ランダム 歌詞ドン！</h2><div class="mode-note">約10文字の歌詞フレーズから曲名を当ててください</div><div id="statusArea" class="status-text">準備中...</div>';
                 html += '<div class="answer-box" id="answerBox"><div class="secret-text">？ ？ ？</div></div>';
@@ -673,6 +717,7 @@ function onPlayerStateChange(event) {
         function nextQuestion(isFirst) {
             if (quizList.length === 0) { alert('イントロドンの問題データがありません。'); return; }
             if (ytPlayer && isPlayerReady) ytPlayer.pauseVideo();
+            pauseMixPlayers();
             clearTimeout(stopTimer);
             if (isFirst) renderScreen();
 
@@ -783,6 +828,7 @@ function onPlayerStateChange(event) {
         function nextLyricQuestion(isFirst) {
             if (lyricQuizList.length === 0) { alert('歌詞ドンの問題データがありません。'); return; }
             if (ytPlayer && isPlayerReady) ytPlayer.pauseVideo();
+            pauseMixPlayers();
             clearTimeout(stopTimer);
             if (isFirst) renderScreen();
 
@@ -853,12 +899,107 @@ function onPlayerStateChange(event) {
             document.getElementById('nextBtn').style.display = 'block';
         }
 
-        function setIntroButtons(enabled) {
+        
+        function pauseMixPlayers() {
+            if (!mixPlayers || mixPlayers.length === 0) return;
+            mixPlayers.forEach(function(player) {
+                try {
+                    if (player && player.pauseVideo) player.pauseVideo();
+                } catch(e) {}
+            });
+        }
+
+        function pickRandomItems(list, count) {
+            var copy = list.slice();
+            var result = [];
+
+            while (copy.length > 0 && result.length < count) {
+                var index = Math.floor(Math.random() * copy.length);
+                result.push(copy.splice(index, 1)[0]);
+            }
+
+            return result;
+        }
+
+        function nextMixQuestion(isFirst) {
+            if (quizList.length < 3) {
+                alert('3曲MIXドンには、シート2に3曲以上のデータが必要です。');
+                return;
+            }
+
+            if (ytPlayer && isPlayerReady) ytPlayer.pauseVideo();
+            pauseMixPlayers();
+            clearTimeout(stopTimer);
+
+            if (isFirst) renderScreen();
+
+            currentMixQuiz = pickRandomItems(quizList, 3);
+            currentQuiz = { title: '3曲MIX', artist: '' };
+
+            document.getElementById('answerBox').innerHTML = '<div class="secret-text">？ ？ ？</div>';
+            document.getElementById('ansBtn').style.display = 'block';
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('statusArea').textContent = '3曲をセットしました！';
+
+            setIntroButtons(true);
+        }
+
+        function playMixQuiz() {
+            if (!mixPlayers || mixPlayers.length < 3 || currentMixQuiz.length < 3) return;
+
+            clearTimeout(stopTimer);
+            document.getElementById('statusArea').textContent = '3曲 同時再生中... 🎧';
+
+            currentMixQuiz.forEach(function(song, index) {
+                var player = mixPlayers[index];
+
+                try {
+                    player.unMute();
+                    player.setVolume(70);
+                    player.loadVideoById({
+                        videoId: song.videoId,
+                        startSeconds: 0
+                    });
+
+                    setTimeout(function() {
+                        try {
+                            player.seekTo(0, true);
+                            player.unMute();
+                            player.setVolume(70);
+                            player.playVideo();
+                        } catch(e) {}
+                    }, 250);
+                } catch(e) {
+                    console.error(e);
+                }
+            });
+        }
+
+        function showMixAnswer() {
+            pauseMixPlayers();
+            clearTimeout(stopTimer);
+
+            var html = '<div class="mix-answer-list">';
+            currentMixQuiz.forEach(function(song, index) {
+                html += '<div class="mix-answer-item"><div class="mix-title">' + (index + 1) + '. ' + song.title + '</div><div>👤 ' + song.artist + '</div></div>';
+            });
+            html += '</div>';
+
+            document.getElementById('answerBox').innerHTML = html;
+            document.getElementById('statusArea').textContent = '正解発表！！どん！！';
+            document.getElementById('ansBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'block';
+        }
+
+function setIntroButtons(enabled) {
             var introPlayBtn = document.getElementById('introPlayBtn');
             if (introPlayBtn) introPlayBtn.disabled = !enabled;
 
             var outroPlayBtn = document.getElementById('outroPlayBtn');
             if (outroPlayBtn) outroPlayBtn.disabled = !enabled;
+
+            var mixPlayBtn = document.getElementById('mixPlayBtn');
+            if (mixPlayBtn) mixPlayBtn.disabled = !enabled;
 
             if(document.getElementById('ansBtn')) document.getElementById('ansBtn').disabled = !enabled;
         }
