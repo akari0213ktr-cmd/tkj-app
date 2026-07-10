@@ -1,11 +1,6 @@
 /* =====================================================
    げんじぶツール Ver.2
    app.js
-
-   アプリの起動処理とGoogleスプレッドシートの
-   データ読み込みを管理します。
-
-   必ず他のJavaScriptファイルより後に読み込んでください。
    ===================================================== */
 
 
@@ -23,30 +18,21 @@ var lyricQuizList = [];
 
 
 /* =====================================================
-   アプリ起動
+   起動
    ===================================================== */
 
-document.addEventListener(
+document.addEventListener('DOMContentLoaded', function() {
 
-    'DOMContentLoaded',
+    initializeApp();
 
-    function() {
-
-        initializeApp();
-    }
-);
+});
 
 
 /* =====================================================
    初期化
    ===================================================== */
 
-function initializeApp() {
-
-    /*
-       まず歌割画面を表示します。
-       データ読み込み中でも画面自体は表示できます。
-    */
+async function initializeApp() {
 
     currentMode = 'utari';
 
@@ -55,155 +41,173 @@ function initializeApp() {
     renderLoadingScreen();
 
 
-    /*
-       シート1・2・3を並行して読み込みます。
-    */
+    try {
 
-    Promise.all([
+        setLoadingMessage('シート1（歌割）を読み込んでいます...');
 
-        loadTextData(
-            utariUrl
-        ),
+        var utariText = await loadTextData(
+            utariUrl,
+            'シート1（歌割）'
+        );
 
-        loadTextData(
-            introUrl
-        ),
-
-        loadTextData(
-            lyricUrl
-        )
-
-    ])
-
-        .then(function(results) {
-
-            /*
-               シート1：歌割
-            */
-
-            parseUtariCSV(
-                results[0]
-            );
+        parseUtariCSV(utariText);
 
 
-            /*
-               シート2：
-               イントロ・アウトロ・3曲MIX
-            */
+        setLoadingMessage('シート2（クイズ）を読み込んでいます...');
 
-            parseIntroCSV(
-                results[1]
-            );
+        var introText = await loadTextData(
+            introUrl,
+            'シート2（クイズ）'
+        );
 
-
-            /*
-               シート3：歌詞ドン
-            */
-
-            parseLyricCSV(
-                results[2]
-            );
+        parseIntroCSV(introText);
 
 
-            /*
-               ランダム出題履歴を初期化します。
-            */
+        setLoadingMessage('シート3（歌詞ドン）を読み込んでいます...');
 
-            remainingQuizList = [];
+        var lyricText = await loadTextData(
+            lyricUrl,
+            'シート3（歌詞ドン）'
+        );
 
-            remainingLyricQuizList = [];
-
-
-            /*
-               読み込み完了後、
-               初期画面を描画します。
-            */
-
-            renderScreen();
+        parseLyricCSV(lyricText);
 
 
-            console.log(
+        remainingQuizList = [];
 
-                'げんじぶツール Ver.2 読み込み完了',
-
-                {
-                    songs:
-                        songList.length,
-
-                    quizzes:
-                        quizList.length,
-
-                    lyricQuizzes:
-                        lyricQuizList.length
-                }
-            );
-        })
+        remainingLyricQuizList = [];
 
 
-        .catch(function(error) {
-
-            console.error(
-
-                'アプリ初期化エラー:',
-
-                error
-            );
+        renderScreen();
 
 
-            renderLoadErrorScreen(
-                error
-            );
-        });
+        console.log(
+            'Ver.2 読み込み完了',
+            {
+                songs: songList.length,
+                quizzes: quizList.length,
+                lyricQuizzes: lyricQuizList.length
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            'アプリ初期化エラー:',
+            error
+        );
+
+        renderLoadErrorScreen(error);
+    }
 }
 
 
 /* =====================================================
-   テキストデータ取得
+   CSV取得
    ===================================================== */
 
-function loadTextData(url) {
+function loadTextData(url, sheetName) {
 
-    return fetch(
+    var timeoutMilliseconds = 15000;
 
-        url,
 
-        {
-            cache:
-                'no-store'
-        }
-    )
+    return new Promise(function(resolve, reject) {
+
+        var finished = false;
+
+
+        var timeoutId = setTimeout(function() {
+
+            if (finished) {
+                return;
+            }
+
+            finished = true;
+
+
+            reject(
+
+                new Error(
+                    sheetName
+                    + 'の読み込みが15秒以内に完了しませんでした。'
+                )
+
+            );
+
+        }, timeoutMilliseconds);
+
+
+        fetch(
+            url,
+            {
+                cache: 'no-store'
+            }
+        )
 
         .then(function(response) {
+
+            if (finished) {
+                return;
+            }
+
 
             if (!response.ok) {
 
                 throw new Error(
 
-                    'HTTPエラー：'
+                    sheetName
+                    + 'のHTTPエラー：'
                     + response.status
+
                 );
             }
 
 
             return response.text();
+        })
+
+        .then(function(text) {
+
+            if (finished) {
+                return;
+            }
+
+
+            finished = true;
+
+            clearTimeout(timeoutId);
+
+            resolve(text);
+        })
+
+        .catch(function(error) {
+
+            if (finished) {
+                return;
+            }
+
+
+            finished = true;
+
+            clearTimeout(timeoutId);
+
+            reject(error);
         });
+    });
 }
 
 
 /* =====================================================
-   読み込み中画面
+   読み込み画面
    ===================================================== */
 
 function renderLoadingScreen() {
 
-    var box =
-        getElement(
-            'mainAppBox'
-        );
+    var box = getElement('mainAppBox');
 
 
     if (!box) {
-
         return;
     }
 
@@ -212,12 +216,16 @@ function renderLoadingScreen() {
 
         '<div class="loading">'
 
-        + '<div class="loading-title">'
+        + '<div class="loading-title" id="loadingTitle">'
+
         + 'データを読み込んでいます...'
+
         + '</div>'
 
         + '<div class="loading-note">'
+
         + '少しお待ちください'
+
         + '</div>'
 
         + '</div>';
@@ -225,33 +233,35 @@ function renderLoadingScreen() {
 
 
 /* =====================================================
-   読み込みエラー画面
+   読み込みメッセージ変更
+   ===================================================== */
+
+function setLoadingMessage(message) {
+
+    setText(
+        'loadingTitle',
+        message
+    );
+}
+
+
+/* =====================================================
+   エラー画面
    ===================================================== */
 
 function renderLoadErrorScreen(error) {
 
-    var box =
-        getElement(
-            'mainAppBox'
-        );
+    var box = getElement('mainAppBox');
 
 
     if (!box) {
-
         return;
     }
 
 
-    var message =
-
-        error
-
-            ? String(
-                error.message
-                || error
-            )
-
-            : '不明なエラー';
+    var message = error
+        ? String(error.message || error)
+        : '不明なエラー';
 
 
     box.innerHTML =
@@ -259,23 +269,31 @@ function renderLoadErrorScreen(error) {
         '<div class="load-error">'
 
         + '<h2 class="load-error-title">'
+
         + 'データを読み込めませんでした'
+
         + '</h2>'
 
         + '<p class="load-error-message">'
+
         + escapeHtml(message)
+
         + '</p>'
 
         + '<p class="load-error-note">'
+
         + 'ページを再読み込みしてください。'
-        + '<br>'
-        + '改善しない場合は、Googleスプレッドシートの公開設定を確認してください。'
+
         + '</p>'
 
         + '<button '
+
         + 'class="action-btn btn-answer" '
+
         + 'onclick="location.reload()">'
+
         + '再読み込み'
+
         + '</button>'
 
         + '</div>';
