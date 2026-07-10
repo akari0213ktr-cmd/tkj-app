@@ -1,0 +1,565 @@
+/* =====================================================
+   げんじぶツール Ver.2
+   style.css
+   ===================================================== */
+
+/* ---------- テーマカラー ---------- */
+
+:root{
+    --bg:#777d80;
+    --panel:#61676a;
+    --border:#444b55;
+
+    --text:#ffffff;
+    --text-sub:#eeeeee;
+
+    --yellow:#ffd700;
+
+    --white:#dfd8cb;
+    --pink:#eda3a5;
+    --blue:#006586;
+    --red:#c92b2a;
+    --green:#61b5a0;
+    --purple:#b5a4c1;
+
+    --my-color:#c76136;
+}
+
+/* ---------- 共通 ---------- */
+
+*{
+    box-sizing:border-box;
+}
+
+html{
+    -webkit-text-size-adjust:100%;
+}
+
+body{
+
+    margin:0;
+    padding:15px;
+
+    font-family:
+        "Meiryo",
+        "メイリオ",
+        sans-serif;
+
+    background:var(--bg);
+    color:var(--text);
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+/* ---------- メニュー ---------- */
+
+.menu-container{
+
+    width:100%;
+    max-width:500px;
+
+    display:grid;
+    grid-template-columns:1fr 1fr;
+
+    gap:10px;
+
+    margin-bottom:20px;
+}
+
+.menu-btn{
+
+    padding:12px;
+
+    border-radius:10px;
+    border:2px solid var(--border);
+
+    background:#555c60;
+
+    color:#fff;
+
+    font-size:1.1rem;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.menu-btn:hover{
+
+    transform:translateY(-1px);
+}
+
+.menu-btn.active{
+
+    background:var(--yellow);
+
+    color:#22252a;
+
+    border-color:var(--yellow);
+}
+
+/* ---------- 共通パネル ---------- */
+
+.app-container{
+
+    width:100%;
+    max-width:500px;
+
+    min-height:50vh;
+
+    padding:20px 15px;
+
+    background:var(--bg);
+
+    border-radius:14px;
+
+    border:2px solid var(--border);
+
+    box-shadow:0 4px 12px rgba(0,0,0,.3);
+}
+
+/* ---------- セレクト ---------- */
+
+.select-container{
+
+    margin-bottom:15px;
+}
+
+select{
+
+    width:100%;
+
+    padding:14px;
+
+    border-radius:10px;
+
+    border:2px solid var(--border);
+
+    background:var(--bg);
+
+    color:#fff;
+
+    font-size:1rem;
+
+    cursor:pointer;
+
+    appearance:none;
+}
+
+/* ---------- 曲名 ---------- */
+
+.song-title{
+
+    margin-top:0;
+    margin-bottom:20px;
+
+    padding-bottom:10px;
+
+    border-bottom:2px solid var(--border);
+
+    color:#fff;
+
+    font-size:1.3rem;
+
+    font-weight:bold;
+}
+
+/* ---------- 歌詞 ---------- */
+
+.lyrics-line{
+
+    display:inline-block;
+
+    width:100%;
+
+    margin-bottom:14px;
+
+    line-height:1.8;
+
+    font-size:1.15rem;
+
+    word-break:break-word;
+}
+
+.part-span{
+
+    white-space:pre-wrap;
+}
+
+.member-label{
+
+    display:inline-block;
+
+    margin-right:.35em;
+
+    color:var(--text-sub);
+
+    font-size:.9em;
+
+    font-weight:bold;
+
+    white-space:nowrap;
+}
+
+/* ---------- パート色 ---------- */
+
+.utai-jibun{
+
+    color:var(--my-color);
+
+    font-weight:bold;
+}
+
+.utai-aite{
+
+    color:var(--purple);
+
+    font-weight:bold;
+}
+
+.utai-futari{
+
+    color:#ffffff;
+
+    font-weight:bold;
+}
+/* =====================================================
+   イントロ・アウトロ画面
+   ===================================================== */
+
+.intro-screen{
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    height:100%;
+}
+
+.intro-title{
+    margin:0 0 25px;
+    color:var(--yellow);
+    font-size:1.5rem;
+}
+
+.status-text{
+    margin-bottom:25px;
+    color:var(--text-sub);
+    font-size:1rem;
+}
+
+/* =====================================================
+   ボタン
+   ===================================================== */
+
+.action-btn,
+.play-btn{
+
+    width:100%;
+
+    padding:15px;
+
+    border:none;
+    border-radius:10px;
+
+    font-size:1.1rem;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.play-btn:hover,
+.action-btn:hover{
+
+    transform:translateY(-2px);
+}
+
+.play-btn:disabled{
+
+    background:#555c60;
+
+    color:#888;
+
+    cursor:not-allowed;
+
+    transform:none;
+}
+
+.btn-answer{
+
+    background:#2980b9;
+
+    color:#fff;
+}
+
+.btn-next{
+
+    background:#27ae60;
+
+    color:#fff;
+}
+
+/* =====================================================
+   回答表示
+   ===================================================== */
+
+.answer-box{
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+
+    min-height:90px;
+
+    margin-bottom:25px;
+
+    padding:20px;
+
+    background:var(--panel);
+
+    border:2px dashed var(--border);
+
+    border-radius:12px;
+}
+
+.secret-text{
+
+    color:var(--border);
+
+    font-size:1.4rem;
+
+    font-weight:bold;
+}
+
+.ans-title{
+
+    margin:0 0 5px;
+
+    color:var(--yellow);
+
+    font-size:1.3rem;
+
+    font-weight:bold;
+}
+
+.ans-artist{
+
+    margin:0;
+
+    color:#fff;
+
+    font-size:1.1rem;
+}
+
+/* =====================================================
+   スライダー
+   ===================================================== */
+
+.slider-box{
+
+    margin-bottom:20px;
+
+    padding:18px 15px;
+
+    background:var(--panel);
+
+    border:2px solid var(--border);
+
+    border-radius:12px;
+}
+
+.slider-label{
+
+    margin-bottom:12px;
+
+    color:#fff;
+
+    font-size:1.1rem;
+
+    font-weight:bold;
+}
+
+.intro-seconds-display,
+.outro-seconds-display{
+
+    color:var(--yellow);
+
+    font-size:1.45rem;
+
+    font-weight:bold;
+}
+
+.intro-slider,
+.outro-slider{
+
+    width:100%;
+
+    accent-color:var(--yellow);
+}
+
+.slider-minmax{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    margin-top:6px;
+
+    color:var(--text-sub);
+
+    font-size:.85rem;
+}
+
+.intro-play-btn,
+.outro-play-btn{
+
+    margin-bottom:25px;
+}
+
+/* =====================================================
+   歌詞ドン
+   ===================================================== */
+
+.lyric-quiz-line{
+
+    white-space:pre-wrap;
+
+    line-height:1.8;
+
+    font-size:1.35rem;
+
+    font-weight:bold;
+
+    color:#fff;
+
+    word-break:keep-all;
+
+    overflow-wrap:anywhere;
+}
+
+.mode-note{
+
+    margin-top:-10px;
+    margin-bottom:20px;
+
+    color:var(--text-sub);
+
+    font-size:.9rem;
+}
+
+/* =====================================================
+   3曲MIX
+   ===================================================== */
+
+.mix-answer-list{
+
+    width:100%;
+
+    text-align:left;
+}
+
+.mix-answer-item{
+
+    margin:8px 0;
+
+    padding:10px;
+
+    background:#555c60;
+
+    border-radius:10px;
+
+    color:#fff;
+}
+
+.mix-title{
+
+    color:var(--yellow);
+
+    font-weight:bold;
+}
+
+/* =====================================================
+   ローディング
+   ===================================================== */
+
+.loading{
+
+    padding:40px 0;
+
+    color:#fff;
+
+    text-align:center;
+}
+
+/* =====================================================
+   YouTube
+   ===================================================== */
+
+#youtube-hidden-container{
+
+    position:fixed;
+
+    left:0;
+    bottom:0;
+
+    width:240px;
+    height:135px;
+
+    opacity:0.01;
+
+    overflow:hidden;
+
+    pointer-events:none;
+
+    z-index:-1;
+}
+
+/* =====================================================
+   スマホ対応
+   ===================================================== */
+
+@media (max-width:600px){
+
+    body{
+
+        padding:12px;
+    }
+
+    .menu-container{
+
+        gap:8px;
+    }
+
+    .menu-btn{
+
+        font-size:1rem;
+
+        padding:11px;
+    }
+
+    .app-container{
+
+        padding:16px 12px;
+    }
+
+    .song-title{
+
+        font-size:1.2rem;
+    }
+
+    .lyrics-line{
+
+        font-size:1.08rem;
+    }
+
+    .lyric-quiz-line{
+
+        font-size:1.25rem;
+    }
+
+}
