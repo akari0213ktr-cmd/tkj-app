@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>げんじぶツール Ver.2</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+</head>
+
+<body>
+
+    <!-- =====================================================
+         メニュー
+         ===================================================== -->
+
+    <nav class="menu-container">
+
+        <button
+            class="menu-btn active"
+            id="menu-utari"
+            type="button"
+            onclick="switchMode('utari')"
+        >
+            🎤 歌割
+        </button>
+
+        <button
+            class="menu-btn"
+            id="menu-intro"
+            type="button"
+            onclick="switchMode('intro')"
+        >
+            🎵 イントロドン
+        </button>
+
+        <button
+            class="menu-btn"
+            id="menu-outro"
+            type="button"
+            onclick="switchMode('outro')"
+        >
+            🎶 アウトロドン
+        </button>
+
+        <button
+            class="menu-btn"
+            id="menu-lyric"
+            type="button"
+            onclick="switchMode('lyric')"
+        >
+            📝 歌詞ドン
+        </button>
+
+        <button
+            class="menu-btn"
+            id="menu-mix"
+            type="button"
+            onclick="switchMode('mix')"
+        >
+            🎧 3曲MIXドン
+        </button>
+
+    </nav>
+
+
+    <!-- =====================================================
+         アプリ本体
+         ===================================================== -->
+
+    <main
+        class="app-container"
+        id="mainAppBox"
+    >
+
+        <div class="loading">
+
+            <div class="loading-title">
+                データを読み込んでいます...
+            </div>
+
+            <div class="loading-note">
+                少しお待ちください
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- =====================================================
+         YouTubeプレイヤー
+         ===================================================== -->
+
+    <div
+        id="youtube-hidden-container"
+        aria-hidden="true"
+    >
+
+        <!-- 通常クイズ用 -->
+
+        <div id="yt-player"></div>
+
+
+        <!-- 3曲MIXドン用 -->
+
+        <div id="yt-mix-player-1"></div>
+
+        <div id="yt-mix-player-2"></div>
+
+        <div id="yt-mix-player-3"></div>
+
+    </div>
+
+
+    <!-- =====================================================
+         JavaScript
+         順番を変更しないでください
+         ===================================================== -->
+
+    <script src="js/config.js"></script>
+
+    <script src="js/common.js"></script>
+
+    <script src="js/parser.js"></script>
+
+    <script src="js/player.js"></script>
+
+    <script src="js/lyrics.js"></script>
+
+    <script src="js/mix.js"></script>
+
+    <script src="js/quiz.js"></script>
+
+    <script src="js/app.js"></script>
+
+
+    <!-- YouTube IFrame Player API -->
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+</body>
+
+</html>
