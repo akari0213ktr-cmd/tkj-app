@@ -1,4 +1,3 @@
-alert('app.js実行確認');
 /* =====================================================
    げんじぶツール Ver.2
    app.js
@@ -22,17 +21,7 @@ var lyricQuizList = [];
    起動
    ===================================================== */
 
-if (document.readyState === 'loading') {
-
-    document.addEventListener(
-        'DOMContentLoaded',
-        initializeApp
-    );
-
-} else {
-
-    initializeApp();
-}
+initializeApp();
 
 
 /* =====================================================
