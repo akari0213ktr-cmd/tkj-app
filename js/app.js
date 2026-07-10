@@ -21,11 +21,17 @@ var lyricQuizList = [];
    起動
    ===================================================== */
 
-document.addEventListener('DOMContentLoaded', function() {
+if (document.readyState === 'loading') {
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        initializeApp
+    );
+
+} else {
 
     initializeApp();
-
-});
+}
 
 
 /* =====================================================
