@@ -89,43 +89,90 @@ function parseUtariCSV(text) {
     songData = {};
 
 
+    /*
+       直前に読み込んだ曲名を記憶します。
+
+       スプレッドシートでA列が空欄の行でも、
+       直前の曲の歌詞として扱えるようにします。
+    */
+
+    var currentTitle = null;
+
+
     for (var i = 1; i < lines.length; i++) {
 
-        var cols = lines[i];
+        var cols = lines[i] || [];
 
-        if (!cols || cols.length < 3) {
+
+        var title =
+            cols[0]
+                ? cols[0].trim()
+                : '';
+
+
+        var yomi =
+            cols[1]
+                ? cols[1].trim()
+                : '';
+
+
+        var lyrics =
+            cols.length >= 3
+                ? cols[2]
+                : '';
+
+
+        /*
+           A列に曲名がある場合は、
+           新しい曲の開始として扱います。
+        */
+
+        if (title) {
+
+            currentTitle = title;
+
+
+            if (!songData[currentTitle]) {
+
+                songData[currentTitle] = lyrics;
+
+
+                songList.push({
+
+                    title:
+                        currentTitle,
+
+                    yomi:
+                        yomi
+                            ? yomi
+                            : currentTitle
+                });
+
+            } else {
+
+                songData[currentTitle] +=
+                    '\n' + lyrics;
+            }
+
+
             continue;
         }
 
 
-        var title = cols[0].trim();
+        /*
+           A列が空欄の場合。
 
-        var yomi = cols[1].trim();
+           直前の曲が存在すれば、
+           その曲の続きとして扱います。
 
-        var lyrics = cols[2];
+           C列も空欄なら "\n" だけ追加されるため、
+           スプレッドシートの空行がアプリにも残ります。
+        */
 
+        if (currentTitle) {
 
-        if (!title) {
-            continue;
-        }
-
-
-        if (!songData[title]) {
-
-            songData[title] = lyrics;
-
-            songList.push({
-
-                title: title,
-
-                yomi: yomi
-                    ? yomi
-                    : title
-            });
-
-        } else {
-
-            songData[title] += '\n' + lyrics;
+            songData[currentTitle] +=
+                '\n' + lyrics;
         }
     }
 
@@ -144,7 +191,6 @@ function parseUtariCSV(text) {
         );
     });
 }
-
 
 /* =====================================================
    シート2：イントロ・アウトロ・3曲MIX
